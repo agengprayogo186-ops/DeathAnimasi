@@ -1,0 +1,38 @@
+name: Build Death Dimension
+
+on:
+  push:
+    branches: [ utama ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Prepare source
+        run: |
+          if [ -f pom.xml ]; then
+            echo "SRC=." >> $GITHUB_ENV
+          else
+            unzip -oq ./*.zip -d src_unzip
+            echo "SRC=src_unzip" >> $GITHUB_ENV
+          fi
+
+      - name: Build jar file
+        working-directory: ${{ env.SRC }}
+        run: mvn -B package
+
+      - name: Upload plugin jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeathDimension-Plugin
+          path: ${{ env.SRC }}/target/DeathDimension.jar
